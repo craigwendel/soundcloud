@@ -11,61 +11,98 @@
 // 4. Create a way to append the fetch results to your page
 
 // 5. Create a way to listen for a click that will play the song in the audio play
+let audio = document.querySelector('.music-player');
 
-document.querySelector('form').addEventListener('submit', function(event) {
-event.preventDefault();
+document.querySelector('form').addEventListener('submit', function (event) {
+  event.preventDefault()
 
-let search = document.querySelector('#search-bar');
-let searchUsers = search.value;
-getSongSearch(searchUsers);
+  let search = document.querySelector('#search-bar')
+  let searchUsers = search.value
+  getSongSearch(searchUsers)
+  document.querySelector('.results').textContent = ''
 })
 
-function getSongSearch(searchUsers) {
-
-  fetch('http://api.soundcloud.com/users/?client_id=8538a1744a7fdaa59981232897501e04&q='+searchUsers+"''")
-  .then( function(response){
+function getSongSearch (searchUsers) {
+  fetch('http://api.soundcloud.com/users/?client_id=8538a1744a7fdaa59981232897501e04&q=' + searchUsers + "''")
+  .then(function (response) {
     return response.json()
     console.log(json)
   })
-  .then(function(json){
+  .then(function (json) {
     console.log(json)
-  for (let i = 0; i < json.length; i++) {
-    let userInfo = {
-      userName: json[i].username,
-      userID: json[i].id,
-      userImage: json[i].avatar_url,
-  }
-    if (!userInfo.userImage) {
-      userInfo.userImage = 'http://www.firemagicgrills.com/wp-content/uploads/accessories-small-placeholder.jpg'
-    }
+    for (let i = 0; i < json.length; i++) {
+      let userName = json[i].username
+      let userID = json[i].id
+      let userImage = json[i].avatar_url
+      let trackNumber = json[i].track_count
 
-    // const upperHtml =
-    // `<div class="audio-url">
-    //   <div class="play-audio"><audio src"=${streamURL}"/></div>
-    // </div>`
-
-    const lowerHtml =
-    `<div class="user-info">
-      <img src="${userInfo.userImage}">
-      <p class="user-name">${userInfo.userName}</p>
+      if (!userImage) {
+        userImage = 'http://www.firemagicgrills.com/wp-content/uploads/accessories-small-placeholder.jpg'
+      }
+      const lowerHtml =
+    `<div class="user-info" id="${userID}">
+      <img src="${userImage}">
+      <p class="user-name">${userName}</p>
+      <p class="track-number">Available Tracks: ${trackNumber}</p>
     </div>`
-
-    // document.querySelector(".player").insertAdjacentHTML('afterbegin', upperHtml)
-    document.querySelector('.results').insertAdjacentHTML('beforeend', lowerHtml)
+      document.querySelector('.results').insertAdjacentHTML('beforeend', lowerHtml)
     }
   })
   .then(function () {
-    let userInfoDivs = document.querySelectorAll(".user-info");
-    userInfoDivs.forEach(function(item) {
-    console.log(item);
+    let userInfoDivs = document.querySelectorAll('.user-info')
+    userInfoDivs.forEach(function (item) {
+      console.log(item)
     })
-
-    userInfoDivs.forEach(function(item)  {
-    item.addEventListener("click",function() {
-      console.log('click!');
-      fetch('http://api.soundcloud.com/tracks/'+userInfo.userID+'/?client_id=8538a1744a7fdaa59981232897501e04')
-    })
+    for (let i = 0; i < userInfoDivs.length; i++) {
+      let artistID = userInfoDivs[i].id
+      userInfoDivs[i].addEventListener('click', function (evt) {
+        pullTracks(artistID)
+        document.querySelector('.results').textContent = ''
+      })
+    }
   })
+  function pullTracks (selectedID) {
+    fetch('http://api.soundcloud.com/users/' + selectedID + '/tracks/?client_id=8538a1744a7fdaa59981232897501e04')
+          .then(function (response) {
+            return response.json()
+          })
+            .then(function (json) {
+              if (json.length === 0) {
+                let trackFailure =
+                `<p>Sorry, these tracks are only available on the SoundCloud Pro membership. For more information visit <a href="https://soundcloud.com/pro" target="_blank">https://soundcloud.com/pro</a></p>`
+                document.querySelector('.results').insertAdjacentHTML('beforeend', trackFailure)
+              }
+              console.log('fetch request', json)
+              for (let i = 0; i < json.length; i++) {
+                let trackImage = json[i].artwork_url
+                let trackName = json[i].title
+                let audioStreamURL = json[i].stream_url
 
-  })
+                if (!trackImage) {
+                  trackImage = 'http://www.firemagicgrills.com/wp-content/uploads/accessories-small-placeholder.jpg'
+                }
+
+                const lowerHtml =
+              `<div class="track-lists" id="${audioStreamURL}">
+                <img src="${trackImage}">
+                <p class="user-name">${trackName}</p>
+              </div>`
+                document.querySelector('.results').insertAdjacentHTML('beforeend', lowerHtml)
+              }
+            })
+            .then(function () {
+              let trackDivs = document.querySelectorAll('.track-lists')
+                for (var i = 0; i < trackDivs.length; i++) {
+                  let streamTrackURL = trackDivs[i].id
+                  console.log(streamTrackURL)
+                  trackDivs[i].addEventListener('click', function () {
+                    playTrack(streamTrackURL)
+                  })
+                }
+              })
+  };
 };
+function playTrack (selectedURL) {
+  audio.src = `${selectedURL}?client_id=8538a1744a7fdaa59981232897501e04`
+  audio.autoplay = true;
+}
