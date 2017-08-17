@@ -11,6 +11,7 @@
 // 4. Create a way to append the fetch results to your page
 
 // 5. Create a way to listen for a click that will play the song in the audio play
+
 let audio = document.querySelector('.music-player');
 
 document.querySelector('form').addEventListener('submit', function (event) {
@@ -23,7 +24,7 @@ document.querySelector('form').addEventListener('submit', function (event) {
 })
 
 function getSongSearch (searchUsers) {
-  fetch('http://api.soundcloud.com/users/?client_id=8538a1744a7fdaa59981232897501e04&q=' + searchUsers + "''")
+  fetch('http://api.soundcloud.com/users/?client_id=JvnNjeIJcp8Ec1Z6e2LOUmaRfJvHR1pm&q=' + searchUsers + "''")
   .then(function (response) {
     return response.json()
     console.log(json)
@@ -103,6 +104,6 @@ function getSongSearch (searchUsers) {
   };
 };
 function playTrack (selectedURL) {
-  audio.src = `${selectedURL}?client_id=8538a1744a7fdaa59981232897501e04`
+  audio.src = `${selectedURL}?client_id=JvnNjeIJcp8Ec1Z6e2LOUmaRfJvHR1pm`
   audio.autoplay = true;
 }
